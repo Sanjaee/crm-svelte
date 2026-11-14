@@ -536,32 +536,139 @@ export const tmpBankStatements = pgTable('tmp_bank_statement', {
 });
 
 // ==========================================
-// 6. USERS, ROLES & AUDIT LOGS (RBAC)
+// 6. DYNAMIC RBAC, USERS & PERMISSION OVERRIDES
 // ==========================================
+
+export const roles = pgTable('roles', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	name: varchar('name', { length: 100 }).notNull(),
+	code: varchar('code', { length: 50 }).notNull().unique(), // SUPER_ADMIN, TICKETING, SUPERVISOR, etc.
+	description: text('description'),
+	isSystem: boolean('is_system').default(false).notNull(),
+	isActive: boolean('is_active').default(true).notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});
+
+export const permissions = pgTable('permissions', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	name: varchar('name', { length: 150 }).notNull(),
+	code: varchar('code', { length: 100 }).notNull().unique(), // e.g. invoices.view, invoices.create
+	module: varchar('module', { length: 100 }).notNull(), // INVOICE MANAGEMENT, CRM, RECONCILIATION, etc.
+	description: text('description'),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+});
 
 export const users = pgTable('users', {
 	id: uuid('id').defaultRandom().primaryKey(),
 	userNo: varchar('user_no', { length: 50 }).notNull().unique(),
-	name: varchar('name', { length: 150 }).notNull(),
+	fullName: varchar('full_name', { length: 150 }).notNull(),
+	name: varchar('name', { length: 150 }), // fallback for existing query
 	email: varchar('email', { length: 150 }).notNull().unique(),
-	role: varchar('role', { length: 50 }).notNull(), // TICKETING, SUPERVISOR, ACCOUNTING_AR, ACCOUNTING_AP, ACCOUNTING_TAX, ADMIN
+	username: varchar('username', { length: 100 }),
+	passwordHash: text('password_hash'),
+	role: varchar('role', { length: 50 }).default('TICKETING').notNull(), // primary/default role code
 	branch: varchar('branch', { length: 100 }).default('JKT-HQ').notNull(),
+	department: varchar('department', { length: 100 }).default('OPERATIONS'),
 	status: varchar('status', { length: 20 }).default('ACTIVE').notNull(),
+	isActive: boolean('is_active').default(true).notNull(),
+	isLocked: boolean('is_locked').default(false).notNull(),
+	mustChangePassword: boolean('must_change_password').default(false).notNull(),
 	avatarUrl: text('avatar_url'),
-	createdDate: timestamp('created_date', { withTimezone: true }).defaultNow().notNull()
+	lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
+	createdDate: timestamp('created_date', { withTimezone: true }).defaultNow().notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});
+
+export const userRoles = pgTable('user_roles', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	userId: uuid('user_id')
+		.references(() => users.id, { onDelete: 'cascade' })
+		.notNull(),
+	roleId: uuid('role_id')
+		.references(() => roles.id, { onDelete: 'cascade' })
+		.notNull(),
+	assignedBy: varchar('assigned_by', { length: 100 }).default('SYSTEM'),
+	assignedAt: timestamp('assigned_at', { withTimezone: true }).defaultNow().notNull()
+});
+
+export const rolePermissions = pgTable('role_permissions', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	roleId: uuid('role_id')
+		.references(() => roles.id, { onDelete: 'cascade' })
+		.notNull(),
+	permissionId: uuid('permission_id')
+		.references(() => permissions.id, { onDelete: 'cascade' })
+		.notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+});
+
+export const userPermissionOverrides = pgTable('user_permission_overrides', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	userId: uuid('user_id')
+		.references(() => users.id, { onDelete: 'cascade' })
+		.notNull(),
+	permissionId: uuid('permission_id')
+		.references(() => permissions.id, { onDelete: 'cascade' })
+		.notNull(),
+	effect: varchar('effect', { length: 10 }).notNull(), // 'ALLOW' or 'DENY'
+	reason: text('reason'),
+	assignedBy: varchar('assigned_by', { length: 100 }).default('SYSTEM'),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});
+
+export const navigationMenus = pgTable('navigation_menus', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	parentId: uuid('parent_id'),
+	name: varchar('name', { length: 100 }).notNull(),
+	code: varchar('code', { length: 100 }).notNull().unique(),
+	route: varchar('route', { length: 255 }).notNull(),
+	icon: varchar('icon', { length: 50 }).default('FileText'),
+	sortOrder: integer('sort_order').default(0).notNull(),
+	isActive: boolean('is_active').default(true).notNull()
+});
+
+export const navigationMenuPermissions = pgTable('navigation_menu_permissions', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	menuId: uuid('menu_id')
+		.references(() => navigationMenus.id, { onDelete: 'cascade' })
+		.notNull(),
+	permissionId: uuid('permission_id')
+		.references(() => permissions.id, { onDelete: 'cascade' })
+		.notNull()
+});
+
+export const userSessions = pgTable('user_sessions', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	userId: uuid('user_id')
+		.references(() => users.id, { onDelete: 'cascade' })
+		.notNull(),
+	sessionTokenHash: text('session_token_hash').notNull().unique(),
+	expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+	revokedAt: timestamp('revoked_at', { withTimezone: true }),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 });
 
 export const auditLogs = pgTable('audit_logs', {
 	id: uuid('id').defaultRandom().primaryKey(),
-	userId: uuid('user_id').references(() => users.id),
-	userNo: varchar('user_no', { length: 50 }).notNull(),
-	action: varchar('action', { length: 100 }).notNull(), // CREATE_INVOICE, APPROVE_INVOICE, REJECT_INVOICE, ALLOCATE_PAYMENT, VOID_REQUEST
-	entityType: varchar('entity_type', { length: 50 }).notNull(), // INVOICE, PAYMENT, CUSTOMER, VENDOR_BILLING
-	entityId: varchar('entity_id', { length: 100 }).notNull(),
+	actorUserId: uuid('actor_user_id'),
+	targetUserId: uuid('target_user_id'),
+	userId: uuid('user_id'),
+	userNo: varchar('user_no', { length: 50 }),
+	action: varchar('action', { length: 100 }).notNull(),
+	module: varchar('module', { length: 100 }).default('GENERAL'),
+	entityType: varchar('entity_type', { length: 50 }).default('RECORD'),
+	entityId: varchar('entity_id', { length: 100 }),
 	details: text('details'),
+	previousValue: text('previous_value'),
+	newValue: text('new_value'),
 	ipAddress: varchar('ip_address', { length: 50 }),
-	createdDate: timestamp('created_date', { withTimezone: true }).defaultNow().notNull()
+	createdDate: timestamp('created_date', { withTimezone: true }).defaultNow().notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 });
+
 
 
 export const businessProfileRelations = relations(businessProfiles, ({ one, many }) => ({

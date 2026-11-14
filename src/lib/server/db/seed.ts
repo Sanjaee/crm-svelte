@@ -11,6 +11,7 @@ export async function seedDatabase() {
 		await db.insert(schema.users).values([
 			{
 				userNo: 'USR-TCK-001',
+				fullName: 'Sarah Ticketing',
 				name: 'Sarah Ticketing',
 				email: 'sarah.ticketing@wahanatravel.com',
 				role: 'TICKETING',
@@ -19,6 +20,7 @@ export async function seedDatabase() {
 			},
 			{
 				userNo: 'USR-SPV-001',
+				fullName: 'Budi Supervisor',
 				name: 'Budi Supervisor',
 				email: 'budi.spv@wahanatravel.com',
 				role: 'SUPERVISOR',
@@ -27,6 +29,7 @@ export async function seedDatabase() {
 			},
 			{
 				userNo: 'USR-AR-001',
+				fullName: 'Linda Accounting AR',
 				name: 'Linda Accounting AR',
 				email: 'linda.ar@wahanatravel.com',
 				role: 'ACCOUNTING_AR',
@@ -35,6 +38,7 @@ export async function seedDatabase() {
 			},
 			{
 				userNo: 'USR-AP-001',
+				fullName: 'Rudi Accounting AP',
 				name: 'Rudi Accounting AP',
 				email: 'rudi.ap@wahanatravel.com',
 				role: 'ACCOUNTING_AP',
@@ -43,6 +47,7 @@ export async function seedDatabase() {
 			},
 			{
 				userNo: 'USR-ADM-001',
+				fullName: 'Admin Wahana',
 				name: 'Admin Wahana',
 				email: 'admin@wahanatravel.com',
 				role: 'ADMIN',

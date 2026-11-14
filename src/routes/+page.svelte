@@ -5,7 +5,6 @@
 	import SectionCards from '#lib/components/SectionCards.svelte';
 	import ChartAreaInteractive from '#lib/components/ChartAreaInteractive.svelte';
 	import DataTable from '#lib/components/DataTable.svelte';
-	import FlowNavigationBanner from '#lib/components/FlowNavigationBanner.svelte';
 	import NewInvoiceModule from '#lib/components/NewInvoiceModule.svelte';
 	import InvoiceListModule from '#lib/components/InvoiceListModule.svelte';
 	import InvoiceApprovalModule from '#lib/components/InvoiceApprovalModule.svelte';
@@ -16,17 +15,15 @@
 	import VendorBillingModule from '#lib/components/VendorBillingModule.svelte';
 	import BankStatementModule from '#lib/components/BankStatementModule.svelte';
 	import DailyPaymentReportModule from '#lib/components/DailyPaymentReportModule.svelte';
+	import UserManagementModule from '#lib/components/UserManagementModule.svelte';
 	import proposalsData from '#lib/data/proposals.json';
-	import { Database, ShieldCheck, UserCheck } from 'lucide-svelte';
-	import { MOCK_USERS, type UserRole } from '#lib/auth.js';
+	import { UserCheck } from 'lucide-svelte';
 
 	let { data }: { data: PageData } = $props();
 
 	let sidebarCollapsed = $state(false);
 	let activeModule = $state('dashboard');
-	let currentRole = $state<UserRole>('ADMIN');
-
-	let currentUser = $derived(MOCK_USERS[currentRole]);
+	let currentRole = $state('SUPER_ADMIN');
 
 	function toggleSidebar() {
 		sidebarCollapsed = !sidebarCollapsed;
@@ -47,7 +44,8 @@
 		'bank-statement': 'Bank Statement Handling',
 		'crm-customers': 'CRM B2B Customer Profiles',
 		'daily-report': 'Daily Payment Report',
-		'tracking': 'Invoice Global Tracking'
+		'tracking': 'Invoice Global Tracking',
+		'admin-users': 'User Management & Dynamic RBAC'
 	};
 </script>
 
@@ -56,10 +54,11 @@
 </svelte:head>
 
 <div class="flex min-h-screen bg-[#101114] text-white">
-	<!-- Collapsible App Sidebar with custom shadcn-style dark scrollbar -->
+	<!-- Dynamic RBAC-driven Collapsible App Sidebar -->
 	<AppSidebar
 		collapsed={sidebarCollapsed}
 		{activeModule}
+		currentUserRole={currentRole}
 		onSelectModule={handleModuleSelect}
 	/>
 
@@ -73,21 +72,22 @@
 				currentModuleTitle={titlesMap[activeModule] || 'Dashboard'}
 			/>
 
-			<!-- Role Switcher for Testing Live Workflows -->
+			<!-- Role Switcher for RBAC Navigation Testing -->
 			<div class="flex items-center gap-3">
 				<div class="flex items-center gap-1.5 bg-[#18191D] border border-[#27272a] rounded-lg px-2.5 py-1 text-xs">
 					<UserCheck class="w-3.5 h-3.5 text-[#EF233C]" />
-					<span class="text-zinc-400">Active Role:</span>
+					<span class="text-zinc-400">Security Role:</span>
 					<select
 						bind:value={currentRole}
 						class="bg-transparent text-white font-bold text-xs focus:outline-none cursor-pointer"
 					>
-						<option value="ADMIN" class="bg-[#18191D]">ADMIN (Super User)</option>
+						<option value="SUPER_ADMIN" class="bg-[#18191D]">SUPER_ADMIN (Full Authority)</option>
 						<option value="TICKETING" class="bg-[#18191D]">TICKETING (Ops Staff)</option>
 						<option value="SUPERVISOR" class="bg-[#18191D]">SUPERVISOR (Approver)</option>
-						<option value="ACCOUNTING_AR" class="bg-[#18191D]">ACCOUNTING AR (Billing/Reconcile)</option>
-						<option value="ACCOUNTING_AP" class="bg-[#18191D]">ACCOUNTING AP (Disbursement)</option>
-						<option value="ACCOUNTING_TAX" class="bg-[#18191D]">ACCOUNTING TAX (PPN/Faktur)</option>
+						<option value="ACCOUNTING_AR" class="bg-[#18191D]">ACCOUNTING_AR (Billing/Reconcile)</option>
+						<option value="ACCOUNTING_AP" class="bg-[#18191D]">ACCOUNTING_AP (Disbursement)</option>
+						<option value="ACCOUNTING_TAX" class="bg-[#18191D]">ACCOUNTING_TAX (PPN/Faktur)</option>
+						<option value="ACCOUNTING_FINANCE" class="bg-[#18191D]">ACCOUNTING_FINANCE (Cashflow)</option>
 					</select>
 				</div>
 			</div>
@@ -95,30 +95,6 @@
 
 		<!-- Page Content Container -->
 		<main class="flex-1 p-4 md:p-6 lg:p-8 space-y-6 max-w-[1600px] w-full mx-auto">
-			<!-- Neon PostgreSQL Real-time Connection Status Banner -->
-			{#if data.databaseConnected}
-				<div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 px-4 flex flex-wrap items-center justify-between gap-3 text-xs text-emerald-400">
-					<div class="flex items-center gap-2.5">
-						<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-						<Database class="w-4 h-4 text-emerald-400" />
-						<span class="font-bold text-emerald-300">Neon PostgreSQL Live</span>
-						<span class="text-emerald-500/60">&bull;</span>
-						<span class="text-zinc-300 font-mono text-[11px]">{data.dbHost}</span>
-						<span class="text-emerald-500/60">&bull;</span>
-						<span class="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded text-[10px] font-mono">{data.region}</span>
-					</div>
-					<div class="flex items-center gap-4 text-[11px] text-zinc-400">
-						<span>Tables: <strong class="text-white font-mono">{data.tablesCount}</strong></span>
-						<span>Customers: <strong class="text-emerald-400 font-mono">{data.customers?.length ?? 0}</strong></span>
-						<span>Invoices: <strong class="text-emerald-400 font-mono">{data.invoices?.length ?? 0}</strong></span>
-						<span>Payments: <strong class="text-emerald-400 font-mono">{data.payments?.length ?? 0}</strong></span>
-					</div>
-				</div>
-			{/if}
-
-			<!-- Flow Navigation Quick Switcher Banner -->
-			<FlowNavigationBanner {activeModule} onSelectModule={handleModuleSelect} />
-
 			<!-- Dynamic View Switcher based on Active Module -->
 			{#if activeModule === 'dashboard'}
 				<div class="space-y-6">
@@ -164,6 +140,13 @@
 
 			{:else if activeModule === 'daily-report'}
 				<DailyPaymentReportModule summaryData={data.stats} />
+
+			{:else if activeModule === 'admin-users'}
+				<UserManagementModule
+					usersList={data.usersList || []}
+					rolesList={data.rolesList || []}
+					permissionsList={data.permissionsList || []}
+				/>
 
 			{/if}
 		</main>
