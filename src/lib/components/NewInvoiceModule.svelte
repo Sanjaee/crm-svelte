@@ -41,7 +41,7 @@
 	}
 </script>
 
-<div class="px-4 lg:px-6 space-y-6">
+<div class="space-y-6">
 	<!-- Flow Stepper Header -->
 	<div class="bg-[#18191D] border border-[#27272a] rounded-xl p-6">
 		<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#27272a]">

@@ -40,7 +40,7 @@
 	);
 </script>
 
-<div class="px-4 lg:px-6 space-y-6">
+<div class="space-y-6">
 	<div class="bg-[#18191D] border border-[#27272a] rounded-xl p-6">
 		<div class="flex items-center justify-between pb-4 border-b border-[#27272a]">
 			<div>

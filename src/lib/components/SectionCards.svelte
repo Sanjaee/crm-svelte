@@ -2,7 +2,7 @@
 	import { TrendingUp, TrendingDown } from 'lucide-svelte';
 </script>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 px-4 lg:px-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
 	<!-- Card 1 -->
 	<div class="bg-[#18191D] border border-[#27272a] rounded-xl p-5 relative overflow-hidden flex flex-col justify-between group hover:border-zinc-700 transition">
 		<div>

@@ -75,7 +75,7 @@
 
 <div class="w-full flex flex-col gap-4">
 	<!-- Tab Bar & Controls -->
-	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 lg:px-6">
+	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
 		<!-- Tabs -->
 		<div class="inline-flex items-center gap-1 bg-[#18191D] border border-[#27272a] rounded-lg p-1 self-start sm:self-auto">
 			<button
@@ -129,7 +129,7 @@
 
 	<!-- Tab Content Outline (Main DataTable) -->
 	{#if currentTab === 'outline'}
-		<div class="px-4 lg:px-6">
+		<div>
 			<div class="bg-[#18191D] border border-[#27272a] rounded-xl overflow-hidden">
 				<div class="overflow-x-auto">
 					<table class="w-full text-left text-xs border-collapse">
@@ -300,7 +300,7 @@
 		</div>
 	{:else}
 		<!-- Other Tabs Placeholders -->
-		<div class="px-4 lg:px-6">
+		<div >
 			<div class="bg-[#18191D] border border-dashed border-[#27272a] rounded-xl p-12 text-center">
 				<p class="text-sm text-zinc-400 font-medium">Viewing {currentTab} section documents.</p>
 				<p class="text-xs text-zinc-500 mt-1">Ready for section item linking and audit history.</p>
