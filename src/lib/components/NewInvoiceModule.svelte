@@ -12,6 +12,12 @@
 		DollarSign
 	} from 'lucide-svelte';
 
+	interface Props {
+		customers?: any[];
+	}
+
+	let { customers = [] }: Props = $props();
+
 	let step = $state(1); // 1 = Invoice Info, 2 = Payment Info
 	let bookingType = $state('FLIGHT');
 	let customerName = $state('PT Telkom Indonesia (MOU)');
@@ -311,3 +317,4 @@
 		{/if}
 	</div>
 </div>
+

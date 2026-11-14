@@ -1,38 +1,37 @@
 <script lang="ts">
 	import { CheckSquare, Check, X, AlertTriangle, FileText, MessageSquare } from 'lucide-svelte';
 
-	let sampleInvoices = $state([
-		{
-			id: '1',
-			invoiceNo: 'INV/2026/11/0088',
-			customer: 'PT Astra International Tbk',
-			pnr: 'GA-77192',
-			amount: 14250000,
-			status: 'SUBMITTED',
-			submittedBy: 'Ticketing 01',
-			date: '14 Nov 2026'
-		},
-		{
-			id: '2',
-			invoiceNo: 'INV/2026/11/0087',
-			customer: 'PT Bank Central Asia',
-			pnr: 'SQ-99214',
-			amount: 28900000,
-			status: 'SUBMITTED',
-			submittedBy: 'Ticketing 02',
-			date: '14 Nov 2026'
-		},
-		{
-			id: '3',
-			invoiceNo: 'INV/2026/11/0085',
-			customer: 'Kementerian Keuangan RI',
-			pnr: 'GA-11204',
-			amount: 8750000,
-			status: 'SUBMITTED',
-			submittedBy: 'Ticketing 01',
-			date: '13 Nov 2026'
-		}
-	]);
+	interface Props {
+		invoices?: any[];
+	}
+
+	let { invoices = [] }: Props = $props();
+
+	let sampleInvoices = $derived(
+		invoices.length > 0
+			? invoices.map((inv) => ({
+					id: inv.id,
+					invoiceNo: inv.invoiceNo,
+					customer: inv.customerName || 'PT Astra International Tbk',
+					pnr: inv.flightReservations?.[0]?.pnrCode || 'GA-77192',
+					amount: Number(inv.billingAmount || 0),
+					status: inv.invoiceStatus,
+					submittedBy: inv.submittedByUserNo || 'Ticketing 01',
+					date: inv.submittedDate ? new Date(inv.submittedDate).toLocaleDateString('id-ID') : '14 Nov 2026'
+			  }))
+			: [
+					{
+						id: '1',
+						invoiceNo: 'INV/2026/11/0088',
+						customer: 'PT Astra International Tbk',
+						pnr: 'GA-77192',
+						amount: 14250000,
+						status: 'SUBMITTED',
+						submittedBy: 'Ticketing 01',
+						date: '14 Nov 2026'
+					}
+			  ]
+	);
 
 	let rejectModalOpen = $state(false);
 	let selectedInvoice = $state<any>(null);
@@ -175,3 +174,4 @@
 		</div>
 	{/if}
 </div>
+

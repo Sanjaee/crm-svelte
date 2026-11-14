@@ -7,15 +7,26 @@
 	import DataTable from '#lib/components/DataTable.svelte';
 	import FlowNavigationBanner from '#lib/components/FlowNavigationBanner.svelte';
 	import NewInvoiceModule from '#lib/components/NewInvoiceModule.svelte';
+	import InvoiceListModule from '#lib/components/InvoiceListModule.svelte';
 	import InvoiceApprovalModule from '#lib/components/InvoiceApprovalModule.svelte';
 	import InvoiceOverdueModule from '#lib/components/InvoiceOverdueModule.svelte';
+	import InvoiceTrackingModule from '#lib/components/InvoiceTrackingModule.svelte';
+	import CrmCustomersModule from '#lib/components/CrmCustomersModule.svelte';
+	import PaymentReceiptModule from '#lib/components/PaymentReceiptModule.svelte';
+	import VendorBillingModule from '#lib/components/VendorBillingModule.svelte';
+	import BankStatementModule from '#lib/components/BankStatementModule.svelte';
+	import DailyPaymentReportModule from '#lib/components/DailyPaymentReportModule.svelte';
 	import proposalsData from '#lib/data/proposals.json';
-	import { Database } from 'lucide-svelte';
+	import { Database, ShieldCheck, UserCheck } from 'lucide-svelte';
+	import { MOCK_USERS, type UserRole } from '#lib/auth.js';
 
 	let { data }: { data: PageData } = $props();
 
 	let sidebarCollapsed = $state(false);
 	let activeModule = $state('dashboard');
+	let currentRole = $state<UserRole>('ADMIN');
+
+	let currentUser = $derived(MOCK_USERS[currentRole]);
 
 	function toggleSidebar() {
 		sidebarCollapsed = !sidebarCollapsed;
@@ -35,7 +46,8 @@
 		'vendor-billing': 'Vendor Billing Reconciliation',
 		'bank-statement': 'Bank Statement Handling',
 		'crm-customers': 'CRM B2B Customer Profiles',
-		'daily-report': 'Daily Payment Report'
+		'daily-report': 'Daily Payment Report',
+		'tracking': 'Invoice Global Tracking'
 	};
 </script>
 
@@ -51,71 +63,108 @@
 		onSelectModule={handleModuleSelect}
 	/>
 
-	<!-- Inset Main Shell -->
+	<!-- Main Inset Content Area -->
 	<div class="flex-1 flex flex-col min-w-0">
-		<SiteHeader
-			onToggleSidebar={toggleSidebar}
-			title={titlesMap[activeModule] || 'Dashboard'}
-		/>
+		<!-- Site Header with User & Role Selector -->
+		<div class="h-14 border-b border-[#27272a] bg-[#101114]/90 backdrop-blur px-4 flex items-center justify-between sticky top-0 z-40">
+			<SiteHeader
+				{sidebarCollapsed}
+				onToggleSidebar={toggleSidebar}
+				currentModuleTitle={titlesMap[activeModule] || 'Dashboard'}
+			/>
 
-		<!-- Live Database Banner -->
-		<div class="px-4 lg:px-6 pt-4">
-			<div class="flex items-center justify-between p-3 rounded-lg bg-[#18191D] border border-zinc-800/80 text-xs">
-				<div class="flex items-center gap-2.5">
-					<div class="p-1.5 rounded-md bg-emerald-500/10 text-emerald-400">
-						<Database class="w-4 h-4" />
-					</div>
-					<div>
-						<span class="font-semibold text-zinc-200">Neon PostgreSQL Singapore:</span>
-						<span class="text-zinc-400 font-mono ml-1">{data.dbHost || 'Connected'}</span>
-						<span class="text-zinc-500 ml-2">({data.tablesCount || 26} tables active)</span>
-					</div>
-				</div>
-				<div class="flex items-center gap-2 text-emerald-400 font-medium">
-					<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-					<span>Live Database OK</span>
+			<!-- Role Switcher for Testing Live Workflows -->
+			<div class="flex items-center gap-3">
+				<div class="flex items-center gap-1.5 bg-[#18191D] border border-[#27272a] rounded-lg px-2.5 py-1 text-xs">
+					<UserCheck class="w-3.5 h-3.5 text-[#EF233C]" />
+					<span class="text-zinc-400">Active Role:</span>
+					<select
+						bind:value={currentRole}
+						class="bg-transparent text-white font-bold text-xs focus:outline-none cursor-pointer"
+					>
+						<option value="ADMIN" class="bg-[#18191D]">ADMIN (Super User)</option>
+						<option value="TICKETING" class="bg-[#18191D]">TICKETING (Ops Staff)</option>
+						<option value="SUPERVISOR" class="bg-[#18191D]">SUPERVISOR (Approver)</option>
+						<option value="ACCOUNTING_AR" class="bg-[#18191D]">ACCOUNTING AR (Billing/Reconcile)</option>
+						<option value="ACCOUNTING_AP" class="bg-[#18191D]">ACCOUNTING AP (Disbursement)</option>
+						<option value="ACCOUNTING_TAX" class="bg-[#18191D]">ACCOUNTING TAX (PPN/Faktur)</option>
+					</select>
 				</div>
 			</div>
 		</div>
 
-		<!-- Page Content Router -->
-		<main class="flex-1 flex flex-col gap-6 py-4 md:py-6">
-			<!-- Flow Quick Switcher Banner -->
-			<FlowNavigationBanner onNavigate={handleModuleSelect} />
-
-			{#if activeModule === 'dashboard'}
-				<!-- Section KPI Cards -->
-				<SectionCards />
-
-				<!-- Area Chart -->
-				<div class="px-4 lg:px-6">
-					<ChartAreaInteractive />
-				</div>
-
-				<!-- Data Table with Tabs, Pagination, and Drawer Inspector -->
-				<DataTable data={proposalsData} />
-			{:else if activeModule === 'new-invoice'}
-				<NewInvoiceModule />
-			{:else if activeModule === 'approval'}
-				<InvoiceApprovalModule />
-			{:else if activeModule === 'overdue'}
-				<InvoiceOverdueModule />
-			{:else}
-				<!-- Direct View for other WahanaTravel modules -->
-				<div class="px-4 lg:px-6">
-					<div class="bg-[#18191D] border border-[#27272a] rounded-xl p-8 text-center space-y-3">
-						<h3 class="text-base font-bold text-white">{titlesMap[activeModule]}</h3>
-						<p class="text-xs text-zinc-400 max-w-md mx-auto">
-							Modul ini terhubung langsung ke skema Drizzle ORM PostgreSQL (`{activeModule}`).
-						</p>
-						<button
-							onclick={() => (activeModule = 'dashboard')}
-							class="px-4 py-2 rounded-lg bg-[#EF233C] text-xs font-semibold text-white transition hover:bg-[#d91d34]"
-						>
-							Kembali ke Dashboard Utama
-						</button>
+		<!-- Page Content Container -->
+		<main class="flex-1 p-4 md:p-6 lg:p-8 space-y-6 max-w-[1600px] w-full mx-auto">
+			<!-- Neon PostgreSQL Real-time Connection Status Banner -->
+			{#if data.databaseConnected}
+				<div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 px-4 flex flex-wrap items-center justify-between gap-3 text-xs text-emerald-400">
+					<div class="flex items-center gap-2.5">
+						<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+						<Database class="w-4 h-4 text-emerald-400" />
+						<span class="font-bold text-emerald-300">Neon PostgreSQL Live</span>
+						<span class="text-emerald-500/60">&bull;</span>
+						<span class="text-zinc-300 font-mono text-[11px]">{data.dbHost}</span>
+						<span class="text-emerald-500/60">&bull;</span>
+						<span class="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded text-[10px] font-mono">{data.region}</span>
+					</div>
+					<div class="flex items-center gap-4 text-[11px] text-zinc-400">
+						<span>Tables: <strong class="text-white font-mono">{data.tablesCount}</strong></span>
+						<span>Customers: <strong class="text-emerald-400 font-mono">{data.customers?.length ?? 0}</strong></span>
+						<span>Invoices: <strong class="text-emerald-400 font-mono">{data.invoices?.length ?? 0}</strong></span>
+						<span>Payments: <strong class="text-emerald-400 font-mono">{data.payments?.length ?? 0}</strong></span>
 					</div>
 				</div>
+			{/if}
+
+			<!-- Flow Navigation Quick Switcher Banner -->
+			<FlowNavigationBanner {activeModule} onSelectModule={handleModuleSelect} />
+
+			<!-- Dynamic View Switcher based on Active Module -->
+			{#if activeModule === 'dashboard'}
+				<div class="space-y-6">
+					<!-- 4 Top KPI Section Cards -->
+					<SectionCards />
+
+					<!-- Interactive Area Chart with Range Toggle -->
+					<ChartAreaInteractive />
+
+					<!-- TanStack Data Table for Proposal Management -->
+					<DataTable data={proposalsData} />
+				</div>
+
+			{:else if activeModule === 'new-invoice'}
+				<NewInvoiceModule customers={data.customers || []} />
+
+			{:else if activeModule === 'invoices'}
+				<InvoiceListModule invoices={data.invoices || []} onSelectInvoice={() => {}} />
+
+			{:else if activeModule === 'approval'}
+				<InvoiceApprovalModule invoices={data.invoices || []} />
+
+			{:else if activeModule === 'overdue'}
+				<InvoiceOverdueModule invoices={data.invoices || []} />
+
+			{:else if activeModule === 'tracking'}
+				<InvoiceTrackingModule invoices={data.invoices || []} />
+
+			{:else if activeModule === 'crm-customers'}
+				<CrmCustomersModule customers={data.customers || []} />
+
+			{:else if activeModule === 'payment-receipt'}
+				<PaymentReceiptModule
+					payments={data.payments || []}
+					unsettledInvoices={data.invoices || []}
+				/>
+
+			{:else if activeModule === 'vendor-billing'}
+				<VendorBillingModule />
+
+			{:else if activeModule === 'bank-statement'}
+				<BankStatementModule />
+
+			{:else if activeModule === 'daily-report'}
+				<DailyPaymentReportModule summaryData={data.stats} />
+
 			{/if}
 		</main>
 	</div>

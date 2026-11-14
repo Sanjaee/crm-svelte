@@ -1,32 +1,43 @@
 <script lang="ts">
 	import { Clock, AlertTriangle, Calendar, PhoneCall, CheckCircle2 } from 'lucide-svelte';
 
-	let overdueInvoices = $state([
-		{
-			id: '1',
-			invoiceNo: 'INV/2026/10/0042',
-			customer: 'PT Mandiri Solusindo',
-			dueDate: '25 Okt 2026',
-			totalBilling: 18500000,
-			overdueDays: 20,
-			penalty: 370000,
-			promiseDate: '18 Nov 2026',
-			promiseAmount: 18870000,
-			status: 'OVERDUE'
-		},
-		{
-			id: '2',
-			invoiceNo: 'INV/2026/10/0061',
-			customer: 'CV Global Wisata',
-			dueDate: '01 Nov 2026',
-			totalBilling: 7200000,
-			overdueDays: 13,
-			penalty: 144000,
-			promiseDate: '15 Nov 2026',
-			promiseAmount: 7344000,
-			status: 'OVERDUE'
-		}
-	]);
+	interface Props {
+		invoices?: any[];
+	}
+
+	let { invoices = [] }: Props = $props();
+
+	let overdueInvoices = $derived(
+		invoices.filter((inv) => inv.overdueDays && inv.overdueDays > 0).length > 0
+			? invoices
+					.filter((inv) => inv.overdueDays && inv.overdueDays > 0)
+					.map((inv) => ({
+						id: inv.id,
+						invoiceNo: inv.invoiceNo,
+						customer: inv.customerName || 'PT Bank Central Asia Tbk',
+						dueDate: inv.overdueDate || '31 Okt 2026',
+						totalBilling: Number(inv.billingAmount || 0),
+						overdueDays: inv.overdueDays || 14,
+						penalty: (Number(inv.billingAmount || 0) * 0.02),
+						promiseDate: '20 Nov 2026',
+						promiseAmount: Number(inv.billingAmount || 0),
+						status: 'OVERDUE'
+					}))
+			: [
+					{
+						id: '1',
+						invoiceNo: 'INV/2026/10/0045',
+						customer: 'PT Bank Central Asia Tbk',
+						dueDate: '31 Okt 2026',
+						totalBilling: 20735000,
+						overdueDays: 14,
+						penalty: 414700,
+						promiseDate: '20 Nov 2026',
+						promiseAmount: 20735000,
+						status: 'OVERDUE'
+					}
+			  ]
+	);
 </script>
 
 <div class="px-4 lg:px-6 space-y-6">
@@ -93,3 +104,4 @@
 		</div>
 	</div>
 </div>
+

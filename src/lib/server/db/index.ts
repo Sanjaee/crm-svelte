@@ -1,10 +1,12 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
-import { DATABASE_URL } from '$app/env/private';
 
-if (!DATABASE_URL) throw new Error('DATABASE_URL is not set');
+const connectionString =
+	process.env.DATABASE_URL ||
+	'postgresql://neondb_owner:npg_Vb9FYZanC2Ns@ep-wispy-cake-ao5ix3t9-pooler.c-2.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
 
-const client = postgres(DATABASE_URL);
+const client = postgres(connectionString);
 
 export const db = drizzle(client, { schema });
+

@@ -13,10 +13,17 @@
 	} from 'lucide-svelte';
 
 	interface Props {
-		onNavigate: (moduleKey: string) => void;
+		activeModule?: string;
+		onNavigate?: (moduleKey: string) => void;
+		onSelectModule?: (moduleKey: string) => void;
 	}
 
-	let { onNavigate }: Props = $props();
+	let { activeModule = 'dashboard', onNavigate = () => {}, onSelectModule = () => {} }: Props = $props();
+
+	function handleSelect(key: string) {
+		onNavigate(key);
+		onSelectModule(key);
+	}
 </script>
 
 <div class="px-4 lg:px-6">
@@ -35,7 +42,7 @@
 
 		<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
 			<button
-				onclick={() => onNavigate('new-invoice')}
+				onclick={() => handleSelect('new-invoice')}
 				class="flex flex-col items-start p-3 rounded-lg bg-[#1F2025] hover:bg-[#27272a] border border-[#27272a] hover:border-[#EF233C] transition text-left group"
 			>
 				<Receipt class="w-4 h-4 text-[#EF233C] mb-2" />
@@ -44,7 +51,7 @@
 			</button>
 
 			<button
-				onclick={() => onNavigate('approval')}
+				onclick={() => handleSelect('approval')}
 				class="flex flex-col items-start p-3 rounded-lg bg-[#1F2025] hover:bg-[#27272a] border border-[#27272a] hover:border-[#EF233C] transition text-left group"
 			>
 				<CheckSquare class="w-4 h-4 text-emerald-400 mb-2" />
@@ -53,7 +60,7 @@
 			</button>
 
 			<button
-				onclick={() => onNavigate('overdue')}
+				onclick={() => handleSelect('overdue')}
 				class="flex flex-col items-start p-3 rounded-lg bg-[#1F2025] hover:bg-[#27272a] border border-[#27272a] hover:border-[#EF233C] transition text-left group"
 			>
 				<Clock class="w-4 h-4 text-amber-400 mb-2" />
@@ -62,7 +69,7 @@
 			</button>
 
 			<button
-				onclick={() => onNavigate('payment-receipt')}
+				onclick={() => handleSelect('payment-receipt')}
 				class="flex flex-col items-start p-3 rounded-lg bg-[#1F2025] hover:bg-[#27272a] border border-[#27272a] hover:border-[#EF233C] transition text-left group"
 			>
 				<CreditCard class="w-4 h-4 text-blue-400 mb-2" />
@@ -71,7 +78,7 @@
 			</button>
 
 			<button
-				onclick={() => onNavigate('vendor-billing')}
+				onclick={() => handleSelect('vendor-billing')}
 				class="flex flex-col items-start p-3 rounded-lg bg-[#1F2025] hover:bg-[#27272a] border border-[#27272a] hover:border-[#EF233C] transition text-left group"
 			>
 				<FileSpreadsheet class="w-4 h-4 text-purple-400 mb-2" />
@@ -80,7 +87,7 @@
 			</button>
 
 			<button
-				onclick={() => onNavigate('bank-statement')}
+				onclick={() => handleSelect('bank-statement')}
 				class="flex flex-col items-start p-3 rounded-lg bg-[#1F2025] hover:bg-[#27272a] border border-[#27272a] hover:border-[#EF233C] transition text-left group"
 			>
 				<FileCheck class="w-4 h-4 text-cyan-400 mb-2" />
@@ -90,3 +97,4 @@
 		</div>
 	</div>
 </div>
+

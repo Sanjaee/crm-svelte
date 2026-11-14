@@ -3,10 +3,12 @@
 
 	interface Props {
 		onToggleSidebar?: () => void;
+		sidebarCollapsed?: boolean;
 		title?: string;
+		currentModuleTitle?: string;
 	}
 
-	let { onToggleSidebar = () => {}, title = 'Documents' }: Props = $props();
+	let { onToggleSidebar = () => {}, sidebarCollapsed = false, title = 'Documents', currentModuleTitle }: Props = $props();
 </script>
 
 <header class="h-14 border-b border-[#27272a] bg-[#101114] flex items-center justify-between px-4 lg:px-6 sticky top-0 z-40 shrink-0">

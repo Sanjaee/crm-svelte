@@ -536,8 +536,33 @@ export const tmpBankStatements = pgTable('tmp_bank_statement', {
 });
 
 // ==========================================
-// 5. RELATIONS DEFINITIONS (DRIZZLE ORM)
+// 6. USERS, ROLES & AUDIT LOGS (RBAC)
 // ==========================================
+
+export const users = pgTable('users', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	userNo: varchar('user_no', { length: 50 }).notNull().unique(),
+	name: varchar('name', { length: 150 }).notNull(),
+	email: varchar('email', { length: 150 }).notNull().unique(),
+	role: varchar('role', { length: 50 }).notNull(), // TICKETING, SUPERVISOR, ACCOUNTING_AR, ACCOUNTING_AP, ACCOUNTING_TAX, ADMIN
+	branch: varchar('branch', { length: 100 }).default('JKT-HQ').notNull(),
+	status: varchar('status', { length: 20 }).default('ACTIVE').notNull(),
+	avatarUrl: text('avatar_url'),
+	createdDate: timestamp('created_date', { withTimezone: true }).defaultNow().notNull()
+});
+
+export const auditLogs = pgTable('audit_logs', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	userId: uuid('user_id').references(() => users.id),
+	userNo: varchar('user_no', { length: 50 }).notNull(),
+	action: varchar('action', { length: 100 }).notNull(), // CREATE_INVOICE, APPROVE_INVOICE, REJECT_INVOICE, ALLOCATE_PAYMENT, VOID_REQUEST
+	entityType: varchar('entity_type', { length: 50 }).notNull(), // INVOICE, PAYMENT, CUSTOMER, VENDOR_BILLING
+	entityId: varchar('entity_id', { length: 100 }).notNull(),
+	details: text('details'),
+	ipAddress: varchar('ip_address', { length: 50 }),
+	createdDate: timestamp('created_date', { withTimezone: true }).defaultNow().notNull()
+});
+
 
 export const businessProfileRelations = relations(businessProfiles, ({ one, many }) => ({
 	invoiceAndPayment: one(invoiceAndPayments, {
